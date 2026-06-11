@@ -18,10 +18,32 @@ A brutalist, offline-first PWA for tracking gym workouts. Bold typography, high 
 
 - **Framework:** React 19 + TypeScript + Vite
 - **Storage:** Dexie.js (IndexedDB)
-- **Styling:** SCSS (Dart Sass) — tokens-first `@use`/`@forward` architecture
+- **Styling:** SCSS (Dart Sass) — tokens-first @use/@forward architecture
 - **Animation:** Framer Motion
 - **PWA:** Vite PWA Plugin
-- **Icons:** none — custom monospace `[bracket]` UI language
+- **Icons:** none — custom monospace [bracket] UI language
 - **Testing:** Vitest + Testing Library + fake-indexeddb (31/31 passing)
 
 ## Getting Started
+
+    git clone https://github.com/muhammedhazemx/MoshPitGymTracker.git
+    cd MoshPitGymTracker
+    npm install --legacy-peer-deps
+    npm run dev
+
+Build for production: `npm run build`
+
+## Tests
+
+    npm test          # watch mode
+    npm run test:run  # single run (CI)
+
+Covers Dexie CRUD + PR detection, the rest timer, and the theme hook.
+
+## Accessibility
+
+WCAG AA contrast in both themes, focus-visible rings, ARIA roles on accordions, and full keyboard support.
+
+## Mobile Install
+    https://mosh-pit-gym-tracker.vercel.app/
+Open the deployed URL in Chrome/Safari and choose "Add to Home Screen".
