@@ -1,0 +1,148 @@
+// =============================================================================
+// _globals.scss — Global shared utility classes used across all screens
+// =============================================================================
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// .container — main screen wrapper
+// ---------------------------------------------------------------------------
+.container {
+  @include mx.screen-container;
+}
+
+// ---------------------------------------------------------------------------
+// .label-bracket — monospace bracketed label/button style
+// ---------------------------------------------------------------------------
+.label-bracket {
+  @include mx.bracket-label;
+
+  // When used as a button, ensure correct cursor and remove button chrome
+  &[role='button'],
+  button#{&} {
+    @include mx.focus-ring;
+    cursor: pointer;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// .brutalist-button — primary CTA bordered button
+// ---------------------------------------------------------------------------
+.brutalist-button {
+  @include mx.brutalist-button;
+}
+
+// ---------------------------------------------------------------------------
+// .screen-header — top nav bar strip (back / actions row)
+// ---------------------------------------------------------------------------
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: fn.space('8');
+}
+
+// ---------------------------------------------------------------------------
+// .wordmark — top-left brand label on landing
+// ---------------------------------------------------------------------------
+.wordmark {
+  position: absolute;
+  top: fn.space('8');
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: map.get(t.$fonts, 'mono');
+  font-size: fn.type-scale('sm');
+  color: var(--color-fg);
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+
+  &::before { content: '['; }
+  &::after  { content: ']'; }
+}
+
+// ---------------------------------------------------------------------------
+// .tagline — bottom-anchored tagline
+// ---------------------------------------------------------------------------
+.tagline {
+  position: absolute;
+  bottom: fn.space('8');
+  font-size: fn.type-scale('xs');
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+  width: 100%;
+  left: 0;
+}
+
+// ---------------------------------------------------------------------------
+// .exercise-row — row of exercises in routine lists
+// ---------------------------------------------------------------------------
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: fn.border('thin') solid var(--color-border);
+  padding-bottom: fn.space('4');
+}
+
+// ---------------------------------------------------------------------------
+// .input-field — underlined text input for exercise names
+// ---------------------------------------------------------------------------
+.input-field {
+  font-size: fn.type-scale('xl');
+  font-weight: fn.weight('heavy');
+  width: 100%;
+  border-bottom: fn.border('thick') solid var(--color-fg);
+  padding-bottom: fn.space('2');
+  margin-bottom: fn.space('4');
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  color: var(--color-fg);
+  font-family: map.get(t.$fonts, 'main');
+  text-transform: uppercase;
+
+  @include mx.focus-ring;
+
+  &::placeholder {
+    opacity: 0.3;
+    font-weight: fn.weight('normal');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tap targets >=44px for buttons, clickables, and inputs
+// ---------------------------------------------------------------------------
+button,
+[role="button"] {
+  &.label-bracket,
+  &.landing__split-tab,
+  &.landing__theme-toggle,
+  &.session__finish-btn,
+  &.session__remove-btn,
+  &.session__rest-adj-btn,
+  &.session__exercise-tab,
+  &.session__add-tab,
+  &.timer__adj-btn,
+  &.timer__pause-btn,
+  &.session-item__delete-btn,
+  &.session-item__delete-set-btn,
+  &.edit-routine__remove-btn {
+    min-height: fn.px-to-rem(44px);
+    min-width: fn.px-to-rem(44px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: fn.space('2') fn.space('4');
+  }
+}
+
+input.input-field,
+input.session__add-exercise-input {
+  min-height: fn.px-to-rem(44px);
+}

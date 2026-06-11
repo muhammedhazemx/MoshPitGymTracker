@@ -1,0 +1,50 @@
+// =============================================================================
+// _base.scss — CSS reset and element-level base styles
+// =============================================================================
+@use 'tokens' as t;
+@use 'functions' as fn;
+@use 'sass:map';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  // Smooth color transitions when switching themes
+  color-scheme: dark light;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: map.get(t.$fonts, 'main');
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color fn.motion('speed-slow') fn.motion('ease'),
+              color            fn.motion('speed-slow') fn.motion('ease');
+}
+
+// Bare input resets — focus ring handled in _mixins.scss via :focus-visible
+input {
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  outline: none; // overridden by :focus-visible in each component partial
+}
+
+// Global button press animation (scale feedback)
+button:active {
+  transform: scale(0.98);
+}
+
+// Global link base
+a {
+  color: inherit;
+  text-decoration: none;
+}

@@ -11,9 +11,9 @@ interface Props {
 export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
   const { routines, logSet, getLastSetForExercise, getPrForExercise, endSession, updateRoutine } = useGym();
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  
+
   const routine = routines?.find(r => r.id === session.routineId);
-  const exercises = routine?.exercises || ["BENCH PRESS"]; // Fallback
+  const exercises = routine?.exercises ?? ['BENCH PRESS'];
   const currentExercise = exercises[currentExerciseIndex];
 
   const [weight, setWeight] = useState('');
@@ -69,8 +69,7 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
 
   const handleLogSet = async () => {
     if (!weight || !reps) return;
-    
-    // Crisp haptic feedback
+
     if ('vibrate' in navigator) {
       navigator.vibrate(40);
     }
@@ -82,29 +81,24 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
       reps: parseInt(reps),
     });
 
-    // Check for PR to show celebration
+    // PR celebration — mix-blend-mode:difference works in both themes
     const currentWeight = parseFloat(weight);
     if (pr && currentWeight > pr.weight) {
-       // High-intensity visual flash for PR
-       const flash = document.createElement('div');
-       flash.className = 'pr-celebration';
-       flash.style.backgroundColor = 'white';
-       flash.style.mixBlendMode = 'difference';
-       document.body.appendChild(flash);
-       
-       // Repeat flash for "strobe" effect
-       setTimeout(() => {
-         flash.style.display = 'none';
-         setTimeout(() => {
-           flash.style.display = 'block';
-           setTimeout(() => flash.remove(), 100);
-         }, 50);
-       }, 100);
-       
-       if ('vibrate' in navigator) {
-         // Deep, layered "Double Pulse" vibration pattern
-         navigator.vibrate([200, 100, 200, 50, 400]); 
-       }
+      const flash = document.createElement('div');
+      flash.className = 'pr-celebration';
+      document.body.appendChild(flash);
+
+      setTimeout(() => {
+        flash.style.display = 'none';
+        setTimeout(() => {
+          flash.style.display = 'block';
+          setTimeout(() => flash.remove(), 100);
+        }, 50);
+      }, 100);
+
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 50, 400]);
+      }
     }
 
     setTimer(restTime);
@@ -116,53 +110,54 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
     onEndSession();
   };
 
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  // -------------------------------------------------------------------------
+  // REST TIMER SCREEN
+  // -------------------------------------------------------------------------
   if (isResting) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="container"
-        style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--fg-color)', color: 'var(--bg-color)' }}
+        className="container timer-screen"
       >
-        {/* Full-screen rest timer layout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-around' }}>
-          {/* Responsive decrease button */}
-          <button 
-            className="label-bracket" 
-            style={{ fontSize: '3rem', color: 'var(--bg-color)', padding: '1rem', minWidth: '60px' }} 
+        <div className="timer__display-row">
+          <button
+            className="timer__adj-btn"
+            aria-label="Decrease rest by 10 seconds"
             onClick={() => adjustTimer(-10)}
           >
             -
           </button>
-          
-          <h1 style={{ fontSize: 'clamp(5rem, 20vw, 8rem)' }}>
-            {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+
+          <h1 className="timer__countdown numeral" aria-live="polite" aria-atomic="true">
+            {formatTime(timer)}
           </h1>
-          
-          {/* Responsive increase button */}
-          <button 
-            className="label-bracket" 
-            style={{ fontSize: '3rem', color: 'var(--bg-color)', padding: '1rem', minWidth: '60px' }} 
+
+          <button
+            className="timer__adj-btn"
+            aria-label="Increase rest by 10 seconds"
             onClick={() => adjustTimer(10)}
           >
             +
           </button>
         </div>
 
-        <h2 style={{ letterSpacing: '0.5em', marginBottom: '2rem' }}>RESTING</h2>
-        
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          {/* Timer controls */}
-          <button 
-            className="label-bracket" 
-            style={{ fontSize: '1.2rem', color: 'var(--bg-color)', border: '1px solid var(--bg-color)', padding: '0.5rem 1rem' }}
+        <h2 className="timer__label">RESTING</h2>
+
+        <div className="timer__controls">
+          <button
+            className="timer__pause-btn"
+            aria-label={isTimerPaused ? 'Resume rest timer' : 'Pause rest timer'}
             onClick={togglePause}
           >
             {isTimerPaused ? '[resume]' : '[pause]'}
           </button>
-          <button 
-            className="brutalist-button" 
-            style={{ borderColor: 'var(--bg-color)' }}
+          <button
+            className="timer__skip-btn"
+            aria-label="Skip rest and return to logging"
             onClick={() => setIsResting(false)}
           >
             [skip]
@@ -172,104 +167,172 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
     );
   }
 
+  // -------------------------------------------------------------------------
+  // ACTIVE LOGGING SCREEN
+  // -------------------------------------------------------------------------
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="container"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <span className="label-bracket">{session.routineName}</span>
-        <button className="label-bracket" onClick={handleEndSession}>[finish_session]</button>
+      {/* Nav bar */}
+      <div className="session__nav">
+        <span className="session__nav-label">{session.routineName}</span>
+        <button
+          className="session__finish-btn"
+          aria-label="Finish workout session"
+          onClick={handleEndSession}
+        >
+          [finish_session]
+        </button>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '3rem' }}>{currentExercise}</h1>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-            {lastSet && <span className="label-bracket">last: {lastSet.weight}kg x {lastSet.reps}</span>}
-            {pr && <span className="label-bracket">pr: {pr.weight}kg</span>}
-            <button className="label-bracket" onClick={handleRemoveExercise} style={{ marginLeft: 'auto', opacity: 0.5 }}>[remove_ex]</button>
-          </div>
-          </div>
+      {/* Main logging area */}
+      <div className="session__main">
 
-          <AnimatePresence>
+        {/* Exercise header */}
+        <div className="session__exercise-header">
+          <h1 className="session__exercise-name">{currentExercise}</h1>
+          <div className="session__stats">
+            {lastSet && (
+              <span className="label-bracket" aria-label={`Last set: ${lastSet.weight} kg × ${lastSet.reps} reps`}>
+                last: {lastSet.weight}kg × {lastSet.reps}
+              </span>
+            )}
+            {pr && (
+              <span className="label-bracket" aria-label={`Personal record: ${pr.weight} kg`}>
+                pr: {pr.weight}kg
+              </span>
+            )}
+            <button
+              className="session__remove-btn"
+              aria-label={`Remove ${currentExercise} from session`}
+              onClick={handleRemoveExercise}
+            >
+              [remove_ex]
+            </button>
+          </div>
+        </div>
+
+        {/* Add exercise panel */}
+        <AnimatePresence>
           {isAddingExercise && (
-            <motion.div 
+            <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              style={{ marginBottom: '2rem', overflow: 'hidden' }}
+              className="session__add-exercise-panel"
             >
-              <input 
+              <input
                 autoFocus
-                type="text" 
-                placeholder="NEW EXERCISE" 
+                type="text"
+                placeholder="NEW EXERCISE"
                 value={newExerciseName}
+                aria-label="New exercise name"
                 onChange={e => setNewExerciseName(e.target.value)}
-                style={{ fontSize: '2rem', width: '100%', fontWeight: 700, borderBottom: '2px solid var(--fg-color)' }}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddExercise(); }}
+                className="session__add-exercise-input"
               />
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button className="label-bracket" onClick={handleAddExercise}>[confirm]</button>
-                <button className="label-bracket" onClick={() => setIsAddingExercise(false)}>[cancel]</button>
+              <div className="session__add-exercise-controls">
+                <button
+                  className="label-bracket"
+                  aria-label="Confirm add exercise"
+                  onClick={handleAddExercise}
+                >
+                  [confirm]
+                </button>
+                <button
+                  className="label-bracket"
+                  aria-label="Cancel add exercise"
+                  onClick={() => setIsAddingExercise(false)}
+                >
+                  [cancel]
+                </button>
               </div>
             </motion.div>
           )}
-          </AnimatePresence>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            <input 
-              type="number" 
-              placeholder="00" 
-              value={weight} 
+        </AnimatePresence>
+
+        {/* Weight & reps inputs */}
+        <div className="session__inputs">
+          <div className="session__input-group">
+            <input
+              type="number"
+              id="input-weight"
+              placeholder="00"
+              value={weight}
+              aria-label="Weight in kilograms"
               onChange={e => setWeight(e.target.value)}
-              style={{ fontSize: '5rem', width: '100%', fontWeight: 900 }}
+              className="session__number-input"
             />
-            <span className="label-bracket">weight_kg</span>
+            <label htmlFor="input-weight" className="session__input-label">weight_kg</label>
           </div>
 
-          <div style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            <input 
-              type="number" 
-              placeholder="00" 
-              value={reps} 
+          <div className="session__input-group">
+            <input
+              type="number"
+              id="input-reps"
+              placeholder="00"
+              value={reps}
+              aria-label="Number of repetitions"
               onChange={e => setReps(e.target.value)}
-              style={{ fontSize: '5rem', width: '100%', fontWeight: 900 }}
+              className="session__number-input"
             />
-            <span className="label-bracket">reps</span>
+            <label htmlFor="input-reps" className="session__input-label">reps</label>
           </div>
 
-          <button 
-            className="brutalist-button"
+          <button
+            id="btn-log-set"
+            className="session__log-btn"
             onClick={handleLogSet}
             disabled={!weight || !reps}
+            aria-label="Log this set"
           >
             [log_set]
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
-        <button className="label-bracket" onClick={() => adjustRestTime(-10)}>-</button>
-        <span className="label-bracket" style={{ color: 'var(--fg-color)' }}>rest: {Math.floor(restTime / 60)}:{(restTime % 60).toString().padStart(2, '0')}</span>
-        <button className="label-bracket" onClick={() => adjustRestTime(10)}>+</button>
+      {/* Rest time adjuster */}
+      <div className="session__rest-adjuster">
+        <button
+          className="session__rest-adj-btn"
+          aria-label="Decrease rest time by 10 seconds"
+          onClick={() => adjustRestTime(-10)}
+        >
+          -
+        </button>
+        <span className="session__rest-display" aria-label={`Rest time: ${formatTime(restTime)}`}>
+          rest: {formatTime(restTime)}
+        </span>
+        <button
+          className="session__rest-adj-btn"
+          aria-label="Increase rest time by 10 seconds"
+          onClick={() => adjustRestTime(10)}
+        >
+          +
+        </button>
       </div>
 
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+      {/* Exercise tab strip */}
+      <div className="session__exercise-tabs" role="tablist" aria-label="Exercises in this session">
         {exercises.map((ex, idx) => (
-          <button 
+          <button
             key={ex}
+            role="tab"
+            aria-selected={idx === currentExerciseIndex}
+            aria-label={`Switch to ${ex}`}
             onClick={() => setCurrentExerciseIndex(idx)}
-            className="label-bracket"
-            style={{ color: idx === currentExerciseIndex ? 'var(--fg-color)' : 'var(--muted-color)', whiteSpace: 'nowrap' }}
+            className={`session__exercise-tab session__exercise-tab--${idx === currentExerciseIndex ? 'active' : 'inactive'}`}
           >
             {ex}
           </button>
         ))}
-        <button 
-          className="label-bracket"
+        <button
+          className="session__add-tab"
+          aria-label="Add a new exercise to this session"
           onClick={() => setIsAddingExercise(true)}
-          style={{ whiteSpace: 'nowrap', opacity: 0.5 }}
         >
           [add_ex]
         </button>

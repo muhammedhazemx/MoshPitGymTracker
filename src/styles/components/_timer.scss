@@ -1,0 +1,96 @@
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Timer screen — full-height inverted surface
+// ---------------------------------------------------------------------------
+.timer-screen {
+  background-color: var(--color-rest-bg);
+  color: var(--color-rest-fg);
+  justify-content: center;
+  align-items: center;
+  border: fn.border('thick') solid var(--color-accent);
+}
+
+// ---------------------------------------------------------------------------
+// Timer display row
+// ---------------------------------------------------------------------------
+.timer__display-row {
+  display: flex;
+  align-items: center;
+  gap: fn.space('4');
+  width: 100%;
+  justify-content: space-around;
+}
+
+// ---------------------------------------------------------------------------
+// +/- adjustment buttons
+// ---------------------------------------------------------------------------
+.timer__adj-btn {
+  font-size: fn.type-scale('2xl');
+  color: var(--color-rest-fg);
+  padding: fn.space('4');
+  min-width: fn.px-to-rem(60px);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  @include mx.bracket-label;
+  font-size: fn.type-scale('2xl'); // override bracket-label size
+  color: var(--color-rest-fg);
+
+  @include mx.focus-ring;
+}
+
+// ---------------------------------------------------------------------------
+// Countdown digits — heroic scale, tabular numerals
+// ---------------------------------------------------------------------------
+.timer__countdown {
+  font-family: map.get(t.$fonts, 'mono');
+  font-size: fn.type-scale('hero');
+  font-weight: fn.weight('heavy');
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------------------
+// "RESTING" label below countdown
+// ---------------------------------------------------------------------------
+.timer__label {
+  letter-spacing: 0.5em;
+  margin-bottom: fn.space('8');
+  font-size: fn.type-scale('lg');
+}
+
+// ---------------------------------------------------------------------------
+// Control row (pause / skip)
+// ---------------------------------------------------------------------------
+.timer__controls {
+  display: flex;
+  gap: fn.space('8');
+  align-items: center;
+}
+
+.timer__pause-btn {
+  @include mx.bracket-label;
+  font-size: fn.type-scale('md');
+  color: var(--color-rest-fg);
+  border: fn.border('thin') solid var(--color-rest-fg);
+  padding: fn.space('2') fn.space('4');
+
+  @include mx.focus-ring;
+}
+
+.timer__skip-btn {
+  @include mx.brutalist-button;
+  border-color: var(--color-rest-fg);
+  color: var(--color-rest-fg);
+
+  &:active {
+    background-color: var(--color-rest-fg);
+    color: var(--color-rest-bg);
+  }
+}

@@ -1,0 +1,212 @@
+// =============================================================================
+// _session.scss — ScreenSession (active workout) styles
+// =============================================================================
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Session nav bar (routine name + finish button)
+// ---------------------------------------------------------------------------
+.session__nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: fn.space('8');
+  width: 100%;
+
+  @include mx.bp('lg') {
+    max-width: map.get(t.$layout, 'container-max');
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.session__nav-label {
+  @include mx.bracket-label;
+  color: var(--color-muted);
+}
+
+.session__finish-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+}
+
+// ---------------------------------------------------------------------------
+// Main exercise area (vertically centered, flex-grow)
+// ---------------------------------------------------------------------------
+.session__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+
+  @include mx.bp('lg') {
+    max-width: map.get(t.$layout, 'container-max');
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Exercise header block
+// ---------------------------------------------------------------------------
+.session__exercise-header {
+  margin-bottom: fn.space('8');
+}
+
+.session__exercise-name {
+  font-size: fn.type-scale('2xl');
+  font-weight: fn.weight('heavy');
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  color: var(--color-fg);
+}
+
+// ---------------------------------------------------------------------------
+// Stats row (last set / PR / remove button)
+// ---------------------------------------------------------------------------
+.session__stats {
+  display: flex;
+  gap: fn.space('4');
+  margin-top: fn.space('4');
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.session__remove-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+// ---------------------------------------------------------------------------
+// Add-exercise animated panel
+// ---------------------------------------------------------------------------
+.session__add-exercise-panel {
+  margin-bottom: fn.space('8');
+  overflow: hidden;
+}
+
+.session__add-exercise-input {
+  @include mx.heavy-numeral(fn.type-scale('xl'));
+  font-weight: fn.weight('heavy');
+  border-bottom: fn.border('thick') solid var(--color-fg);
+  padding-bottom: fn.space('2');
+  text-transform: uppercase;
+
+  @include mx.focus-ring;
+}
+
+.session__add-exercise-controls {
+  display: flex;
+  gap: fn.space('4');
+  margin-top: fn.space('4');
+}
+
+// ---------------------------------------------------------------------------
+// Input group (weight / reps)
+// ---------------------------------------------------------------------------
+.session__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: fn.space('8');
+}
+
+.session__input-group {
+  border-bottom: fn.border('thick') solid var(--color-border);
+  padding-bottom: fn.space('2');
+}
+
+.session__number-input {
+  @include mx.heavy-numeral;
+}
+
+.session__input-label {
+  @include mx.bracket-label;
+  display: block;
+  margin-top: fn.space('2');
+}
+
+// ---------------------------------------------------------------------------
+// Log set button
+// ---------------------------------------------------------------------------
+.session__log-btn {
+  @include mx.brutalist-button;
+  width: 100%;
+  margin-top: fn.space('8');
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+
+    &:active {
+      transform: none;
+      background-color: transparent;
+      color: var(--color-fg);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Rest-time adjuster (shown below inputs during active session)
+// ---------------------------------------------------------------------------
+.session__rest-adjuster {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: fn.space('4');
+  margin-top: fn.space('8');
+}
+
+.session__rest-adj-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+}
+
+.session__rest-display {
+  @include mx.bracket-label;
+  color: var(--color-fg);
+}
+
+// ---------------------------------------------------------------------------
+// Exercise tab strip (scrollable horizontal list)
+// ---------------------------------------------------------------------------
+.session__exercise-tabs {
+  display: flex;
+  gap: fn.space('4');
+  overflow-x: auto;
+  padding-bottom: fn.space('4');
+  margin-top: fn.space('8');
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.session__exercise-tab {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  white-space: nowrap;
+  transition: color fn.motion('speed-base') fn.motion('ease');
+
+  &--active {
+    color: var(--color-fg);
+  }
+
+  &--inactive {
+    color: var(--color-muted);
+  }
+}
+
+.session__add-tab {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  white-space: nowrap;
+  opacity: 0.5;
+}

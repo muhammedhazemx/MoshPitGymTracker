@@ -1,0 +1,135 @@
+PROJECT SUMMARY
+---------------
+Name: MOSH PIT GYM
+Purpose: A high-end, brutalist Progressive Web App (PWA) for tracking gym workouts.
+Problem it solves: Provides a distraction-free, highly intentional, and aesthetically raw offline-first workout tracking experience without requiring an internet connection or cloud account.
+Target Audience: Gym-goers who appreciate minimal, streetwear-inspired design and offline data ownership.
+Status: Fully functional, complete, and robust. Features workout logging, history, offline support, custom routine creation/editing, rest timer, PR haptics, theme toggle, and a comprehensive automated test suite.
+
+TECH STACK
+----------
+Framework: React 19.2.5
+Language: TypeScript (~6.0.2)
+Build Tool: Vite 8.0.10
+Styling: Modular Sass/SCSS (^1.100.0) with zero inline styles. Configured via modular stylesheets, tokens, Sass functions, and mixins.
+State Management & Database: Dexie.js 4.4.2 (IndexedDB) with dexie-react-hooks 4.4.0
+Animations: Framer Motion 12.38.0
+Icons: None. The Lucide React library has been completely uninstalled and removed from project dependencies. The interface relies entirely on typography and monospace custom bracket indicators (e.g., `[+]`, `[-]`, `[x]`).
+PWA Tooling: vite-plugin-pwa 1.2.0
+Testing Suite (NEW):
+  - Test Runner: Vitest ^4.1.8
+  - Testing Libraries: @testing-library/react ^16.3.2, @testing-library/jest-dom ^6.9.1, @testing-library/user-event ^14.6.1, @testing-library/dom
+  - Test Environment: jsdom ^29.1.1
+  - Mock DB: fake-indexeddb ^6.2.5
+  - Test Coverage: @vitest/coverage-v8 ^4.1.8
+
+ARCHITECTURE & HOW IT'S BUILT
+-----------------------------
+Structure:
+- `src/App.tsx`: The application root component. Sets up route navigation through a `currentScreen` state using Framer Motion's `AnimatePresence`. Integrates the custom `useTheme` hook and propagates theme states to the views.
+- `src/db/index.ts`: The IndexedDB schema declaration using Dexie. Sets up tables for `routines`, `exercises`, `sessions`, and `sets`, and automatically seeds default PPL (Push/Pull/Legs), Upper/Lower, and Full Body routines on first load.
+- `src/hooks/useGym.ts`: The central business logic layer. Exposes reactive hooks using `useLiveQuery` to handle routines, session state, PR detection (highest weight * reps, or weight increase for same reps), and JSON export.
+- `src/hooks/useTheme.ts` (NEW): Custom React hook that handles theme state. Syncs configuration between local storage (`mosh-pit-gym-theme`) and the browser environment (system default media checks via `matchMedia`), dynamically mutating the `data-theme` attribute on the root HTML document.
+- `src/styles/`:
+  - `main.scss`: The main entry stylesheet that imports the tokens, functions, mixins, global typography, themes, and screen-specific stylesheets in order.
+  - `_tokens.scss`: Contains system-level configuration maps (`$palettes`, `$type-scale`, `$fonts`, `$weights`, `$space`, `$borders`, `$motion`, `$breakpoints`, `$layout`).
+  - `_functions.scss`: Custom Sass utility functions (`token()`, `space()`, `type-scale()`, `palette()`, `weight()`, `motion()`, `border()`, `px-to-rem()`) wrapping token maps with `sass:map` and `sass:math` functions.
+  - `_mixins.scss`: Custom design rules, including `bracket-label`, `invert-on-active`, `focus-ring` (custom style for `:focus-visible`), `brutalist-button`, `bp($name)` (media breakpoints), `reduced-motion`, `heavy-numeral`, and `screen-container`.
+  - `_themes.scss`: Defines `$theme-dark` and `$theme-light` maps, compiling them into CSS variables at the root level using an `emit-theme($map)` mixin.
+  - `_base.scss`: Box-sizing reset, global resets, and active press transitions.
+  - `_type.scss`: General typographic configuration, forcing brutalist styling like uppercase headings and heavyweight numerical spacing.
+  - `components/`: Modular component files containing styles for specific visual structures:
+    - `_globals.scss`: Global reusable classes (`.container`, `.label-bracket`, `.brutalist-button`, `.screen-header`, `.wordmark`, `.tagline`, `.exercise-row`, `.input-field`).
+    - `_landing.scss`: Tab switches, routine cycle pickers, layout options, and the bottom-aligned theme toggle.
+    - `_session.scss`: Interactive workout components, logging inputs, rest controls, and active exercises.
+    - `_timer.scss`: Styles for the rest timer overlay screen, configuring time-adjuster buttons and counters.
+    - `_history.scss`: Styles for lists, history summaries, delete triggers, and collapsible routines.
+    - `_edit-routine.scss`: Custom routine editor panels, inputs, and deletion lists.
+    - `_pr-celebration.scss`: Configuration for full-screen flashes and stroke animations.
+- `src/test/`: Contains configurations and specs:
+  - `setup.ts`: Registers standard Jest DOM matchers, loads local auto-indexedDB mock objects, and overrides missing browser APIs (`navigator.vibrate`, `window.matchMedia`).
+  - `db.test.ts`: 13 integration tests for database initializations, updates, routine seeding, history date grouping, and PR logic.
+  - `timer.test.tsx`: 9 unit and component tests ensuring proper countdown rendering, user overrides (+/- 10 seconds), pausing, skipping, and execution loops.
+  - `theme.test.ts`: 9 unit tests checking OS configurations, toggles, persistence, and state updates.
+
+Data Flow & Persistence:
+Persistence relies entirely on client-side IndexedDB databases accessed via Dexie. Live queries notify subscriber screens of updates automatically, causing UI renders to reflect modifications instantly.
+
+DESIGN SYSTEM & COLOR THEMES
+---------------------------
+Styling relies on standard CSS variables generated dynamically by the SCSS theme module. It defaults to dark theme configurations, with a target override for `[data-theme='light']`.
+
+Dark Theme Tokens:
+- Background: `--color-bg: #050505` (Deep void black)
+- Foreground: `--color-fg: #f0f0f0` (Raw off-white)
+- Accent: `--color-accent: #ffffff` (Pure white)
+- Muted/Labels: `--color-muted: #666666` (Medium charcoal gray)
+- Borders: `--color-border: #222222` (Dark gray border lines)
+- Rest Background: `--color-rest-bg: #050505` (Same polarity as background)
+- Rest Foreground: `--color-rest-fg: #f0f0f0` (Same polarity as foreground)
+
+Light Theme Tokens:
+- Background: `--color-bg: #f5f5f0` (Premium bone/warm paper white)
+- Foreground: `--color-fg: #111111` (Heavy dark ink black)
+- Accent: `--color-accent: #050505` (Deep dark tone)
+- Muted/Labels: `--color-muted: #666666` (Medium charcoal gray)
+- Borders: `--color-border: #dddddd` (Light gray border lines)
+- Rest Background: `--color-rest-bg: #f5f5f0` (Same polarity as background)
+- Rest Foreground: `--color-rest-fg: #111111` (Same polarity as foreground)
+
+Theme Mechanism:
+- Rather than using expensive CSS filters like `filter: invert(1)` which degrade performance and visual quality, theme transitions are clean CSS property swaps.
+- The Full-Screen Rest Timer dynamically utilizes `--color-rest-bg` and `--color-rest-fg` CSS variables, matching the active theme's polarity (without inversion) while remaining visually distinct using a thick accent border and a heavy monospace numeral font.
+- The PR strobe animation uses `mix-blend-mode: difference` on a pure white overlay, flashing a bright screen invert that adapts natively to both dark and light modes.
+
+LOOK & FEEL / UI WALKTHROUGH
+----------------------------
+Aesthetic: Brutalist, high-contrast, text-heavy, resembling raw streetwear editorials.
+- Landing Screen: Minimalist layout. Users cycle through giant typography (up to `hero` size on desktop) to pick a routine. Small monospace bracket links `[start_session]` act as primary actions. A theme toggle button labeled `[light]` or `[dark]` is positioned in the bottom-right corner.
+- Session Screen: Dominates with huge `5rem` inputs for weight and reps. Shows previous performance ("last:" / "pr:"). Logging a set triggers a crisp vibration (`navigator.vibrate(40)`). Centered with a focused measure on desktop screens.
+- PR Celebration: Hitting a PR causes the entire screen to flash white and invert colors via a `.pr-celebration` CSS animation using `mix-blend-mode: difference`, accompanied by a heavy layered haptic pulse (`[200, 100, 200, 50, 400]`).
+- Rest Timer Screen: Takes over the full UI, matching the active theme, displaying a massive monospace countdown bordered by a thick accent line, forcing intentional rest. Fills the entire viewport and centers its content on desktop.
+
+FEATURES
+--------
+- Installable PWA with offline support (Service Worker via Vite).
+- IndexedDB local storage.
+- Pre-seeded Splits (Push/Pull/Legs, Upper/Lower, Full Body).
+- Dynamic routine editing (add/remove exercises mid-session).
+- In-session Rest Timer with +/- 10s adjustments.
+- PR & Last Set tracking per exercise.
+- Visual Strobe and Haptic Feedback for PRs.
+- Session History viewer.
+- JSON Data Export functionality.
+- Dynamic Theme Toggle (Light/Dark mode) with local persistence and system preference synchronization.
+- Automated Test Suite with 31/31 passing unit and integration tests.
+- Full desktop & tablet optimization (centered measure layouts, 2-column grid history view, centered comfortable forms, and fixed full-viewport rest timer overlay).
+
+ACCESSIBILITY & PERFORMANCE
+---------------------------
+- Performance: Excellent. React 19 + local IndexedDB ensures zero network latency during use. Framer Motion is used transitionally for screen switches.
+- Accessibility:
+  - Focus Ring: Custom `:focus-visible` styling applied via the `focus-ring` mixin, replacing default overrides and improving keyboard navigability.
+  - Form Controls: `<input>` fields are explicitly paired with `<label>` elements using `htmlFor` identifiers.
+  - Custom Buttons: Interactive elements like custom accordions, layout cards, and toggles are built with keyboard interactions (`onKeyDown` handles Enter and Space keys) and standard ARIA attributes (`role="tab"`, `role="tablist"`, `aria-selected`, `aria-expanded`).
+  - Tap Targets: Enforced minimum interactive target dimensions of 44px by 44px on all buttons, custom bracket elements, links, and inputs across desktop and mobile.
+
+TESTING
+-------
+Automated tests are written using Vitest, testing core business logic and state managers:
+- Database & Logic Tests (`src/test/db.test.ts`): 13 integration tests. Verifies seeding routines, data mutations, PR detections, and database schema behavior.
+- Rest Timer UI Tests (`src/test/timer.test.tsx`): 9 tests checking DOM mounts, interval countdown steps, custom +/- 10s buttons, pause/skip actions, and completion events.
+- Theme System Tests (`src/test/theme.test.ts`): 9 tests checking initialization routines, fallback detections (local storage and media matcher), toggle mutations, and persistence attributes.
+
+CODE QUALITY
+------------
+- Strict TypeScript: Enabled via `tsconfig.json`. Development and test environments are separated cleanly (`tsconfig.test.json` extends base files, and test files are excluded from core build configs to prevent test-only packages from leaking into production builds).
+- Linting: Standardized via ESLint configurators.
+- Styling Quality: Completely clean SCSS structure. All styling rules are abstracted into component stylesheets, removing 100% of inline style rules.
+- Modular imports: Partials utilize modern Sass namespace rules (`@use` and `@forward`) rather than standard `@import` calls.
+
+KNOWN LIMITATIONS / GAPS
+------------------------
+- Export-Only Data: Users can export their workout logs as JSON, but there is no built-in restore tool.
+- OS Limitation: iOS Safari does not support the `navigator.vibrate` haptic API, meaning vibration effects will not trigger on Apple mobile devices.
+- Testing Gaps: Main screen integration tests (e.g., rendering full screens inside Vitest) are omitted; test coverage focuses on the database engine, state utilities, hooks, and the highly interactive Rest Timer component.

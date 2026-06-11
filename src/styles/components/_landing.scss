@@ -1,0 +1,95 @@
+// =============================================================================
+// _landing.scss — ScreenLanding styles
+// =============================================================================
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Landing screen wrapper — centered vertically and horizontally
+// ---------------------------------------------------------------------------
+.landing {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+// ---------------------------------------------------------------------------
+// Split selector tabs (PPL / UL / FULL)
+// ---------------------------------------------------------------------------
+.landing__split-tabs {
+  display: flex;
+  gap: fn.space('4');
+  justify-content: center;
+  margin-bottom: fn.space('4');
+}
+
+.landing__split-tab {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  transition: color fn.motion('speed-base') fn.motion('ease');
+
+  &--active {
+    color: var(--color-fg);
+  }
+
+  &--inactive {
+    color: var(--color-muted);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Routine name — giant clickable headline to cycle through routines
+// ---------------------------------------------------------------------------
+.landing__routine-name {
+  font-size: fn.type-scale('4xl');
+  cursor: pointer;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-weight: map.get(t.$weights, 'heavy');
+  color: var(--color-fg);
+
+  @include mx.focus-ring;
+
+  @include mx.bp('lg') {
+    font-size: fn.type-scale('hero');
+  }
+
+  @include mx.reduced-motion {
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Routine picker block (tabs + name grouped)
+// ---------------------------------------------------------------------------
+.landing__picker {
+  margin-bottom: fn.space('16');
+}
+
+// ---------------------------------------------------------------------------
+// CTA actions column
+// ---------------------------------------------------------------------------
+.landing__actions {
+  display: flex;
+  flex-direction: column;
+  gap: fn.space('6');
+  width: 100%;
+  max-width: 320px;
+}
+
+// ---------------------------------------------------------------------------
+// Theme toggle — positioned bottom-right
+// ---------------------------------------------------------------------------
+.landing__theme-toggle {
+  position: absolute;
+  bottom: fn.space('8');
+  right: fn.space('8');
+
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+}

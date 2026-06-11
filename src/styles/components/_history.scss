@@ -1,0 +1,161 @@
+// =============================================================================
+// _history.scss — ScreenHistory and SessionItem styles
+// =============================================================================
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+
+// ---------------------------------------------------------------------------
+// History screen title
+// ---------------------------------------------------------------------------
+.history__title {
+  font-size: fn.type-scale('3xl');
+  margin-bottom: fn.space('8');
+}
+
+// ---------------------------------------------------------------------------
+// Sessions list (flex column with spacing)
+// ---------------------------------------------------------------------------
+.history__list {
+  display: flex;
+  flex-direction: column;
+  gap: fn.space('8');
+
+  @include mx.bp('lg') {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: fn.space('8');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+.history__empty {
+  @include mx.bracket-label;
+  color: var(--color-muted);
+  text-align: center;
+  padding: fn.space('16') 0;
+}
+
+// ---------------------------------------------------------------------------
+// SessionItem — single session card
+// ---------------------------------------------------------------------------
+.session-item {
+  border-bottom: fn.border('thin') solid var(--color-border);
+  padding-bottom: fn.space('4');
+}
+
+// ---------------------------------------------------------------------------
+// Session summary row (clickable header)
+// ---------------------------------------------------------------------------
+.session-item__header {
+  cursor: pointer;
+
+  @include mx.focus-ring;
+
+  &:focus-visible {
+    outline-offset: 4px;
+  }
+}
+
+.session-item__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.session-item__name {
+  font-size: fn.type-scale('xl');
+  font-weight: fn.weight('heavy');
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+
+// ---------------------------------------------------------------------------
+// Session meta row (expand toggle / duration / delete)
+// ---------------------------------------------------------------------------
+.session-item__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: fn.space('2');
+}
+
+.session-item__meta-left {
+  display: flex;
+  gap: fn.space('4');
+}
+
+.session-item__duration {
+  @include mx.bracket-label;
+  color: var(--color-fg);
+}
+
+.session-item__delete-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  opacity: 0.5;
+}
+
+// ---------------------------------------------------------------------------
+// Expanded exercise breakdown
+// ---------------------------------------------------------------------------
+.session-item__details {
+  overflow: hidden;
+  margin-top: fn.space('6');
+}
+
+.session-item__exercise-block {
+  margin-bottom: fn.space('6');
+}
+
+.session-item__exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: fn.space('2');
+}
+
+.session-item__exercise-name {
+  @include mx.bracket-label;
+  color: var(--color-fg);
+  font-size: fn.type-scale('base');
+}
+
+.session-item__exercise-tally {
+  @include mx.bracket-label;
+  opacity: 0.7;
+}
+
+.session-item__sets {
+  display: flex;
+  flex-direction: column;
+  gap: fn.space('2');
+}
+
+.session-item__set-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: fn.space('4');
+}
+
+.session-item__set-data {
+  font-size: fn.type-scale('md');
+  font-weight: fn.weight('bold');
+  font-variant-numeric: tabular-nums;
+}
+
+.session-item__set-time {
+  @include mx.bracket-label;
+  margin-left: fn.space('4');
+  font-size: fn.type-scale('xs');
+}
+
+.session-item__delete-set-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+  opacity: 0.3;
+}

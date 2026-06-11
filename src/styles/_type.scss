@@ -1,0 +1,22 @@
+// =============================================================================
+// _type.scss — Typography system
+// =============================================================================
+@use 'tokens' as t;
+@use 'functions' as fn;
+@use 'sass:map';
+
+// Heading defaults — brutalist: uppercase, heavy, tight leading
+h1, h2, h3 {
+  text-transform: uppercase;
+  font-weight: fn.weight('heavy');
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--color-fg);
+}
+
+// Monospace numerals for timer / weight / reps displays
+.numeral {
+  font-variant-numeric: tabular-nums;
+  font-family: map.get(t.$fonts, 'main');
+  letter-spacing: -0.03em;
+}

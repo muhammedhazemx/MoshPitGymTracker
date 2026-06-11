@@ -1,0 +1,33 @@
+// =============================================================================
+// main.scss — SCSS entry point using @use module system (no @import)
+// =============================================================================
+// Load order matters: tokens -> functions -> mixins -> themes -> base -> type
+// -> component partials
+// =============================================================================
+
+// 1. Token maps (no output — pure data)
+@use 'tokens';
+
+// 2. Functions (no output — pure helpers)
+@use 'functions';
+
+// 3. Mixins (no output — pure mixins)
+@use 'mixins';
+
+// 4. Themes — emits :root and [data-theme] CSS custom property blocks
+@use 'themes';
+
+// 5. Base — resets and element defaults
+@use 'base';
+
+// 6. Typography
+@use 'type';
+
+// 7. Component partials
+@use 'components/globals';
+@use 'components/pr-celebration';
+@use 'components/landing';
+@use 'components/timer';
+@use 'components/session';
+@use 'components/history';
+@use 'components/edit-routine';

@@ -1,0 +1,82 @@
+// =============================================================================
+// _edit-routine.scss — ScreenEditRoutine styles
+// =============================================================================
+@use '../tokens' as t;
+@use '../functions' as fn;
+@use '../mixins' as mx;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Screen heading block
+// ---------------------------------------------------------------------------
+.edit-routine__title {
+  font-size: fn.type-scale('2xl');
+  margin-bottom: fn.space('2');
+}
+
+.edit-routine__subtitle {
+  display: block;
+  margin-bottom: fn.space('8');
+}
+
+// ---------------------------------------------------------------------------
+// Exercises list
+// ---------------------------------------------------------------------------
+.edit-routine__list {
+  display: flex;
+  flex-direction: column;
+  gap: fn.space('8');
+  flex: 1;
+}
+
+// ---------------------------------------------------------------------------
+// Exercise row (name + remove)
+// ---------------------------------------------------------------------------
+.edit-routine__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: fn.border('thin') solid var(--color-border);
+  padding-bottom: fn.space('4');
+}
+
+.edit-routine__item-name {
+  font-size: fn.type-scale('lg');
+  font-weight: fn.weight('heavy');
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+}
+
+.edit-routine__remove-btn {
+  @include mx.bracket-label;
+  @include mx.focus-ring;
+}
+
+// ---------------------------------------------------------------------------
+// Add exercise input block
+// ---------------------------------------------------------------------------
+.edit-routine__add-block {
+  margin-top: fn.space('8');
+}
+
+.edit-routine__add-btn {
+  @include mx.brutalist-button;
+  width: 100%;
+}
+
+// ---------------------------------------------------------------------------
+// Desktop panel constraint
+// ---------------------------------------------------------------------------
+.edit-routine {
+  .screen-header,
+  .edit-routine__title,
+  .edit-routine__subtitle,
+  .edit-routine__list {
+    @include mx.bp('lg') {
+      max-width: map.get(t.$layout, 'container-max');
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}

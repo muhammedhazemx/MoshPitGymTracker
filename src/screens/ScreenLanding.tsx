@@ -4,12 +4,20 @@ import { useGym } from '../hooks/useGym';
 import type { Routine } from '../db';
 
 interface Props {
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
   onStartSession: (routine: Routine) => void;
   onViewHistory: () => void;
   onEditRoutine: (routine: Routine) => void;
 }
 
-export const ScreenLanding: React.FC<Props> = ({ onStartSession, onViewHistory, onEditRoutine }) => {
+export const ScreenLanding: React.FC<Props> = ({
+  theme,
+  onToggleTheme,
+  onStartSession,
+  onViewHistory,
+  onEditRoutine,
+}) => {
   const { routines } = useGym();
   const [selectedSplit, setSelectedSplit] = useState<'PPL' | 'UL' | 'FULL'>('PPL');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,68 +30,85 @@ export const ScreenLanding: React.FC<Props> = ({ onStartSession, onViewHistory, 
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="container"
-      style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
+      className="container landing"
     >
-      <div style={{ position: 'absolute', top: '2rem', width: '100%', left: 0 }}>
-        <h3 className="label-bracket" style={{ color: 'var(--fg-color)' }}>mosh pit gym</h3>
-      </div>
+      <span className="wordmark" aria-label="Mosh Pit Gym">mosh pit gym</span>
 
-      <div style={{ marginBottom: '4rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem' }}>
+      <div className="landing__picker">
+        <div className="landing__split-tabs" role="tablist" aria-label="Workout split type">
           {(['PPL', 'UL', 'FULL'] as const).map(split => (
-            <button 
+            <button
               key={split}
+              role="tab"
+              aria-selected={selectedSplit === split}
+              aria-label={`Select ${split} split`}
+              id={`split-tab-${split}`}
               onClick={() => { setSelectedSplit(split); setCurrentIndex(0); }}
-              className="label-bracket"
-              style={{ color: selectedSplit === split ? 'var(--fg-color)' : 'var(--muted-color)', border: 'none' }}
+              className={`landing__split-tab landing__split-tab--${selectedSplit === split ? 'active' : 'inactive'}`}
             >
               {split}
             </button>
           ))}
         </div>
 
-        <motion.h1 
+        <motion.h1
           key={currentRoutine?.name}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          style={{ fontSize: '5rem', cursor: 'pointer' }}
+          className="landing__routine-name"
           onClick={nextRoutine}
+          role="button"
+          tabIndex={0}
+          aria-label={`Current routine: ${currentRoutine?.name ?? 'Loading'}. Click to cycle routines.`}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') nextRoutine(); }}
         >
-          {currentRoutine?.name || 'LOADING'}
+          {currentRoutine?.name ?? 'LOADING'}
         </motion.h1>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <button 
+      <div className="landing__actions">
+        <button
+          id="btn-start-session"
           className="brutalist-button"
+          aria-label="Start workout session"
           onClick={() => currentRoutine && onStartSession(currentRoutine)}
         >
           [start_session]
         </button>
-        
-        <button 
+
+        <button
+          id="btn-edit-routine"
           className="label-bracket"
+          aria-label="Edit current routine"
           onClick={() => currentRoutine && onEditRoutine(currentRoutine)}
         >
-          [edit_routine]
+          edit_routine
         </button>
 
-        <button 
+        <button
+          id="btn-view-history"
           className="label-bracket"
+          aria-label="View workout history"
           onClick={onViewHistory}
         >
-          [view_history]
+          view_history
         </button>
       </div>
 
-      <div style={{ position: 'absolute', bottom: '2rem', fontSize: '0.7rem', color: 'var(--muted-color)', textTransform: 'uppercase' }}>
-        Raw energy logged locally.
-      </div>
+      <button
+        id="btn-theme-toggle"
+        className="landing__theme-toggle"
+        onClick={onToggleTheme}
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+      >
+        {theme === 'dark' ? 'light' : 'dark'}
+      </button>
+
+      <span className="tagline" aria-hidden="true">Raw energy logged locally.</span>
     </motion.div>
   );
 };

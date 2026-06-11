@@ -1,0 +1,135 @@
+// =============================================================================
+// _mixins.scss — Reusable SCSS mixins
+// =============================================================================
+@use 'tokens' as t;
+@use 'functions' as fn;
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Responsive breakpoint mixin
+// ---------------------------------------------------------------------------
+@mixin bp($name) {
+  $val: map.get(t.$breakpoints, $name);
+  @if $val == null {
+    @error "Breakpoint '#{$name}' is not defined in $breakpoints.";
+  }
+  @media (min-width: $val) {
+    @content;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// bracket-label — adds [bracket] pseudo-elements to the element
+// Usage: @include bracket-label;
+// ---------------------------------------------------------------------------
+@mixin bracket-label {
+  font-family: map.get(t.$fonts, 'mono');
+  font-size: fn.type-scale('sm');
+  color: var(--color-muted);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &::before { content: '['; }
+  &::after  { content: ']'; }
+}
+
+// ---------------------------------------------------------------------------
+// invert-on-active — inverts fg/bg on :active for brutalist press feedback
+// ---------------------------------------------------------------------------
+@mixin invert-on-active {
+  transition: background-color fn.motion('speed-base') fn.motion('ease'),
+              color            fn.motion('speed-base') fn.motion('ease'),
+              transform        fn.motion('speed-fast') fn.motion('ease');
+
+  &:active {
+    background-color: var(--color-fg);
+    color: var(--color-bg);
+    transform: scale(0.98);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// focus-ring — WCAG-compliant visible keyboard focus indicator
+// ---------------------------------------------------------------------------
+@mixin focus-ring {
+  &:focus {
+    outline: none; // removed for :focus-visible below
+  }
+
+  &:focus-visible {
+    outline: fn.border('thick') solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// brutalist-button — full brutalist bordered button
+// ---------------------------------------------------------------------------
+@mixin brutalist-button {
+  border: fn.border('thin') solid var(--color-fg);
+  padding: fn.space('4') fn.space('8');
+  font-size: fn.type-scale('md');
+  font-family: map.get(t.$fonts, 'main');
+  font-weight: fn.weight('bold');
+  background: none;
+  color: var(--color-fg);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @include invert-on-active;
+  @include focus-ring;
+}
+
+// ---------------------------------------------------------------------------
+// reduced-motion — wraps content in prefers-reduced-motion: no-preference
+// Use this to guard animation declarations
+// ---------------------------------------------------------------------------
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// heavy-numeral — styles for giant weight/rep/timer display inputs
+// ---------------------------------------------------------------------------
+@mixin heavy-numeral($size: fn.type-scale('4xl')) {
+  font-size: $size;
+  font-weight: fn.weight('heavy');
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--color-fg);
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: map.get(t.$fonts, 'main');
+
+  &::placeholder {
+    opacity: 0.2;
+  }
+
+  @include focus-ring;
+}
+
+// ---------------------------------------------------------------------------
+// screen-container — full-height centered constrained column layout
+// ---------------------------------------------------------------------------
+@mixin screen-container {
+  max-width: map.get(t.$layout, 'container-max');
+  margin: 0 auto;
+  padding: fn.space('8');
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  @include bp('lg') {
+    max-width: map.get(t.$layout, 'desktop-max');
+    padding: fn.space('12') fn.space('8');
+  }
+}

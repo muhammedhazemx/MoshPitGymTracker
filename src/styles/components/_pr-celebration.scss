@@ -1,0 +1,27 @@
+// =============================================================================
+// _pr-celebration.scss — PR strobe flash animation
+// Works correctly in BOTH dark and light themes because mix-blend-mode:difference
+// always inverts regardless of the base theme.
+// =============================================================================
+@use '../functions' as fn;
+@use '../mixins' as mx;
+
+@keyframes pr-flash {
+  0%   { opacity: 0; }
+  40%  { opacity: 1; }
+  60%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.pr-celebration {
+  position: fixed;
+  inset: 0;
+  background: white;
+  mix-blend-mode: difference;
+  z-index: 10000;
+  pointer-events: none;
+
+  @include mx.reduced-motion {
+    animation: pr-flash fn.motion('speed-slow') fn.motion('ease-out');
+  }
+}
