@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GymDatabase } from '../db';
+import { getBestPerformanceSet, isPersonalRecord } from '../hooks/useGym';
 
 let db: GymDatabase;
 
@@ -100,39 +101,53 @@ describe('Sessions', () => {
 });
 
 describe('PR detection', () => {
-  it('identifies a new PR correctly', async () => {
+  it('identifies the best set by weight times reps', async () => {
     const now = new Date();
     const sessionId = 1;
 
     await db.sets.bulkAdd([
-      { sessionId, exerciseName: 'Bench Press', weight: 80, reps: 5, timestamp: now },
-      { sessionId, exerciseName: 'Bench Press', weight: 90, reps: 4, timestamp: now },
+      { sessionId, exerciseName: 'Bench Press', weight: 120, reps: 3, timestamp: now },
+      { sessionId, exerciseName: 'Bench Press', weight: 100, reps: 5, timestamp: now },
     ]);
 
     const allSets = await db.sets.where('exerciseName').equals('Bench Press').toArray();
-    const pr = allSets.reduce((prev, curr) => (curr.weight > prev.weight ? curr : prev), allSets[0]);
-    expect(pr.weight).toBe(90);
+    const pr = getBestPerformanceSet(allSets);
+    expect(pr?.weight).toBe(100);
+    expect(pr?.reps).toBe(5);
+  });
 
-    const newWeight = 100;
-    expect(newWeight > pr.weight).toBe(true);
+  it('triggers PR for higher total weight times reps', async () => {
+    const previousSets = [
+      { weight: 120, reps: 3 },
+      { weight: 100, reps: 5 },
+    ];
+
+    expect(isPersonalRecord({ weight: 105, reps: 5 }, previousSets)).toBe(true);
+  });
+
+  it('triggers PR for a weight increase at the same rep count', async () => {
+    const previousSets = [
+      { weight: 100, reps: 10 },
+      { weight: 120, reps: 5 },
+    ];
+
+    expect(isPersonalRecord({ weight: 125, reps: 5 }, previousSets)).toBe(true);
   });
 
   it('does not trigger PR for equal weight', async () => {
     const now = new Date();
     await db.sets.add({ sessionId: 1, exerciseName: 'Squat', weight: 120, reps: 3, timestamp: now });
     const allSets = await db.sets.where('exerciseName').equals('Squat').toArray();
-    const pr = allSets.reduce((prev, curr) => (curr.weight > prev.weight ? curr : prev), allSets[0]);
 
-    expect(120 > pr.weight).toBe(false);
+    expect(isPersonalRecord({ weight: 120, reps: 3 }, allSets)).toBe(false);
   });
 
   it('does not trigger PR for lower weight', async () => {
     const now = new Date();
     await db.sets.add({ sessionId: 1, exerciseName: 'Deadlift', weight: 150, reps: 3, timestamp: now });
     const allSets = await db.sets.where('exerciseName').equals('Deadlift').toArray();
-    const pr = allSets.reduce((prev, curr) => (curr.weight > prev.weight ? curr : prev), allSets[0]);
 
-    expect(140 > pr.weight).toBe(false);
+    expect(isPersonalRecord({ weight: 140, reps: 3 }, allSets)).toBe(false);
   });
 });
 

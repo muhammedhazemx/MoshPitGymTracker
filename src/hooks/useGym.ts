@@ -1,6 +1,40 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Routine, type WorkoutSet } from '../db';
 
+type PerformanceSet = Pick<WorkoutSet, 'weight' | 'reps'>;
+
+export function getSetScore(set: PerformanceSet) {
+  return set.weight * set.reps;
+}
+
+export function getBestPerformanceSet<T extends PerformanceSet>(sets: T[]) {
+  if (sets.length === 0) return null;
+
+  return sets.reduce((best, current) => {
+    const currentScore = getSetScore(current);
+    const bestScore = getSetScore(best);
+
+    if (currentScore > bestScore) return current;
+    if (currentScore === bestScore && current.weight > best.weight) return current;
+    return best;
+  }, sets[0]);
+}
+
+export function isPersonalRecord(candidate: PerformanceSet, previousSets: PerformanceSet[]) {
+  const bestSet = getBestPerformanceSet(previousSets);
+  if (!bestSet) return false;
+
+  if (getSetScore(candidate) > getSetScore(bestSet)) return true;
+
+  const bestSameRepWeight = previousSets
+    .filter((set) => set.reps === candidate.reps)
+    .reduce<number | null>((best, set) => (
+      best === null || set.weight > best ? set.weight : best
+    ), null);
+
+  return bestSameRepWeight !== null && candidate.weight > bestSameRepWeight;
+}
+
 export function useGym() {
   const routines = useLiveQuery(() => db.routines.toArray());
   const activeSession = useLiveQuery(() => db.sessions.where('status').equals('active').first());
@@ -40,22 +74,26 @@ export function useGym() {
     });
   };
 
-  const getSetsForSession = (sessionId: number) => {
+  const useSetsForSession = (sessionId: number) => {
     return useLiveQuery(() => db.sets.where('sessionId').equals(sessionId).toArray(), [sessionId]);
   };
 
-  const getPrForExercise = (exerciseName: string) => {
+  const usePrForExercise = (exerciseName: string) => {
     return useLiveQuery(async () => {
       const allSets = await db.sets.where('exerciseName').equals(exerciseName).toArray();
       if (allSets.length === 0) return null;
-      return allSets.reduce((prev, curr) => (curr.weight > prev.weight ? curr : prev), allSets[0]);
+      return getBestPerformanceSet(allSets);
     }, [exerciseName]);
   };
 
-  const getLastSetForExercise = (exerciseName: string) => {
+  const useLastSetForExercise = (exerciseName: string) => {
     return useLiveQuery(async () => {
       return await db.sets.where('exerciseName').equals(exerciseName).reverse().first();
     }, [exerciseName]);
+  };
+
+  const useSetsForExercise = (exerciseName: string) => {
+    return useLiveQuery(() => db.sets.where('exerciseName').equals(exerciseName).toArray(), [exerciseName]);
   };
 
   const updateRoutine = async (routineId: number, exercises: string[]) => {
@@ -105,8 +143,9 @@ export function useGym() {
     deleteSet,
     exportData,
     logSet,
-    getSetsForSession,
-    getPrForExercise,
-    getLastSetForExercise
+    useSetsForSession,
+    useSetsForExercise,
+    usePrForExercise,
+    useLastSetForExercise
   };
 }

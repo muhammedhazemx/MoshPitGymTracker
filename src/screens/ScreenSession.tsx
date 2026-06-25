@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGym } from '../hooks/useGym';
+import { isPersonalRecord, useGym } from '../hooks/useGym';
 import type { Session } from '../db';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
-  const { routines, logSet, getLastSetForExercise, getPrForExercise, endSession, updateRoutine } = useGym();
+  const { routines, logSet, useLastSetForExercise, usePrForExercise, useSetsForExercise, endSession, updateRoutine } = useGym();
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 
   const routine = routines?.find(r => r.id === session.routineId);
@@ -25,8 +25,9 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
   const [restTime, setRestTime] = useState(90);
   const [timer, setTimer] = useState(0);
 
-  const lastSet = getLastSetForExercise(currentExercise);
-  const pr = getPrForExercise(currentExercise);
+  const lastSet = useLastSetForExercise(currentExercise);
+  const pr = usePrForExercise(currentExercise);
+  const exerciseSets = useSetsForExercise(currentExercise);
 
   const adjustRestTime = (amount: number) => {
     setRestTime(prev => Math.max(0, prev + amount));
@@ -60,9 +61,6 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
     let interval: number;
     if (isResting && !isTimerPaused && timer > 0) {
       interval = setInterval(() => setTimer(t => t - 1), 1000);
-    } else if (timer === 0) {
-      setIsResting(false);
-      setIsTimerPaused(false);
     }
     return () => clearInterval(interval);
   }, [isResting, isTimerPaused, timer]);
@@ -74,16 +72,21 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
       navigator.vibrate(40);
     }
 
-    await logSet({
+    const currentSet = {
       sessionId: session.id!,
       exerciseName: currentExercise,
       weight: parseFloat(weight),
       reps: parseInt(reps),
+    };
+    const didHitPr = isPersonalRecord(currentSet, exerciseSets ?? []);
+
+    await logSet({
+      ...currentSet,
+      isPr: didHitPr,
     });
 
-    // PR celebration — mix-blend-mode:difference works in both themes
-    const currentWeight = parseFloat(weight);
-    if (pr && currentWeight > pr.weight) {
+    // PR celebration - mix-blend-mode:difference works in both themes
+    if (didHitPr) {
       const flash = document.createElement('div');
       flash.className = 'pr-celebration';
       document.body.appendChild(flash);
@@ -103,6 +106,7 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
 
     setTimer(restTime);
     setIsResting(true);
+    setIsTimerPaused(false);
   };
 
   const handleEndSession = async () => {
@@ -116,7 +120,7 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
   // -------------------------------------------------------------------------
   // REST TIMER SCREEN
   // -------------------------------------------------------------------------
-  if (isResting) {
+  if (isResting && timer > 0) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -196,8 +200,8 @@ export const ScreenSession: React.FC<Props> = ({ session, onEndSession }) => {
           <h1 className="session__exercise-name">{currentExercise}</h1>
           <div className="session__stats">
             {lastSet && (
-              <span className="label-bracket" aria-label={`Last set: ${lastSet.weight} kg × ${lastSet.reps} reps`}>
-                last: {lastSet.weight}kg × {lastSet.reps}
+              <span className="label-bracket" aria-label={`Last set: ${lastSet.weight} kg x ${lastSet.reps} reps`}>
+                last: {lastSet.weight}kg x {lastSet.reps}
               </span>
             )}
             {pr && (

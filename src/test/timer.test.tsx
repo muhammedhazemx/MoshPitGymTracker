@@ -1,12 +1,14 @@
 /**
- * timer.test.tsx — Tests for rest timer countdown, pause/resume, skip, and ±10s adjustments.
+ * timer.test.tsx - Tests for rest timer countdown, pause/resume, skip, and +/-10s adjustments.
  * Uses vi.useFakeTimers() + fireEvent to avoid userEvent async timing conflicts.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import { useState, useEffect } from 'react';
+import { db, type Session } from '../db';
+import { ScreenSession } from '../screens/ScreenSession';
 
-// ─── Minimal self-contained timer component for testing ──────────────────────
+// Minimal self-contained timer component for testing.
 function RestTimer({
   initialSeconds,
   onDone,
@@ -44,14 +46,17 @@ function RestTimer({
     </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 describe('Rest timer', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.useRealTimers();
+    await db.delete();
+    await db.open();
     vi.useFakeTimers();
   });
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
+    await db.delete();
   });
 
   it('displays the correct initial formatted time', () => {
@@ -135,4 +140,64 @@ describe('Rest timer', () => {
 
     expect(onDone).toHaveBeenCalled();
   });
+
+  it('runs the production session rest timer from log through completion', async () => {
+    vi.useRealTimers();
+    const routineId = await db.routines.add({
+      name: 'PUSH',
+      type: 'PPL',
+      exercises: ['BENCH PRESS'],
+    });
+    const now = new Date();
+    const session: Session = {
+      id: await db.sessions.add({
+        date: now,
+        startTime: now,
+        routineId,
+        routineName: 'PUSH',
+        duration: 0,
+        status: 'active',
+      }),
+      date: now,
+      startTime: now,
+      routineId,
+      routineName: 'PUSH',
+      duration: 0,
+      status: 'active',
+    };
+
+    render(<ScreenSession session={session} onEndSession={() => {}} />);
+
+    await screen.findByRole('button', { name: 'Log this set' });
+
+    const decreaseRestButton = screen.getByRole('button', { name: 'Decrease rest time by 10 seconds' });
+    for (let count = 0; count < 8; count += 1) {
+      fireEvent.click(decreaseRestButton);
+    }
+
+    fireEvent.change(screen.getByLabelText('Weight in kilograms'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('Number of repetitions'), { target: { value: '5' } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Log this set' }));
+    });
+
+    expect(await screen.findByText('RESTING')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '0:10' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Increase rest by 10 seconds' }));
+    expect(screen.getByRole('heading', { name: '0:20' })).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '0:19' })).toBeInTheDocument();
+    }, { timeout: 1500 });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease rest by 10 seconds' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease rest by 10 seconds' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('RESTING')).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: 'Log this set' })).toBeInTheDocument();
+  }, 8000);
 });

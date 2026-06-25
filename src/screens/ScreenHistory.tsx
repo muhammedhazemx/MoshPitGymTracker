@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGym } from '../hooks/useGym';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type WorkoutSet } from '../db';
+import { db, type Session, type WorkoutSet } from '../db';
 
 interface Props {
   onBack: () => void;
 }
 
-const SessionItem: React.FC<{ session: any; onDelete: (id: number) => void }> = ({ session, onDelete }) => {
+const SessionItem: React.FC<{ session: Session; onDelete: (id: number) => void }> = ({ session, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const { deleteSet } = useGym();
 
   const sets = useLiveQuery(
-    () => db.sets.where('sessionId').equals(session.id).toArray(),
+    () => db.sets.where('sessionId').equals(session.id!).toArray(),
     [session.id]
   );
 
@@ -93,14 +93,14 @@ const SessionItem: React.FC<{ session: any; onDelete: (id: number) => void }> = 
                   {exSets.map((set) => (
                     <div key={set.id} className="session-item__set-row">
                       <span className="session-item__set-data">
-                        {set.weight}KG × {set.reps}
+                        {set.weight}KG x {set.reps}
                         <span className="session-item__set-time">
                           {set.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </span>
                       <button
                         className="session-item__delete-set-btn"
-                        aria-label={`Delete set: ${set.weight}kg × ${set.reps} reps`}
+                        aria-label={`Delete set: ${set.weight}kg x ${set.reps} reps`}
                         onClick={(e) => handleDeleteSet(e, set.id!)}
                       >
                         [x]

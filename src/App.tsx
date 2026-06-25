@@ -19,12 +19,6 @@ function App() {
     seedDatabase();
   }, []);
 
-  useEffect(() => {
-    if (activeSession) {
-      setCurrentScreen('session');
-    }
-  }, [activeSession]);
-
   const handleStartSession = async (routine: Routine) => {
     await startSession(routine);
     setCurrentScreen('session');
@@ -47,9 +41,11 @@ function App() {
     return () => window.removeEventListener('click', handleGlobalClick);
   }, []);
 
+  const visibleScreen = activeSession ? 'session' : currentScreen;
+
   return (
     <AnimatePresence mode="wait">
-      {currentScreen === 'landing' && (
+      {visibleScreen === 'landing' && (
         <ScreenLanding
           key="landing"
           theme={theme}
@@ -60,7 +56,7 @@ function App() {
         />
       )}
 
-      {currentScreen === 'session' && activeSession && (
+      {visibleScreen === 'session' && activeSession && (
         <ScreenSession
           key="session"
           session={activeSession}
@@ -68,14 +64,14 @@ function App() {
         />
       )}
 
-      {currentScreen === 'history' && (
+      {visibleScreen === 'history' && (
         <ScreenHistory
           key="history"
           onBack={() => setCurrentScreen('landing')}
         />
       )}
 
-      {currentScreen === 'edit_routine' && editingRoutine && (
+      {visibleScreen === 'edit_routine' && editingRoutine && (
         <ScreenEditRoutine
           key="edit_routine"
           routine={editingRoutine}
